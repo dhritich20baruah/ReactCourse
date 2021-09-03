@@ -36,3 +36,10 @@
     transform: rotate(360deg);
   }
 }
+.blank{
+  color: red;
+  font-family: Verdana;
+  font-style: italic;
+  size: 2em;
+
+}
