@@ -1,17 +1,22 @@
 
 import './App.css';
-// import About from './Components/About';
+import About from './Components/About';
 import Navbar from './Components/Navbar';
 import TextForm from './Components/TextForm';
 import React, { useState } from 'react';
 import Alert from './Components/Alert';
-
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
 
 function App() {
-  const [mode, setMode] = useState('light'); //Whether dark mode is enabled or not
+  const [mode, setMode] = useState('light'); //Wheather dark mode is enabled or not
   const [alert, setAlert] = useState(null);
 
-  const showAlert = (message, type)=>{
+  const showAlert = (message, type) => {
     setAlert({
       msg: message,
       type: type
@@ -20,14 +25,14 @@ function App() {
       setAlert(null);
     }, 2000);
   }
-  const toggleMode = () =>{
-    if (mode === 'light'){
+  const toggleMode = () => {
+    if (mode === 'light') {
       setMode('dark');
       document.body.style.backgroundColor = '#212529';
       showAlert('Dark mode has been enabled', 'success');
       document.title = 'TextUtils - Dark Mode'
     }
-    else{
+    else {
       setMode('light');
       document.body.style.backgroundColor = 'white';
       showAlert('Light mode has been enabled', 'success')
@@ -36,12 +41,22 @@ function App() {
   }
   return (
     <>
-    <Navbar title="TextUtils" aboutText="About Us" mode={mode} toggleMode={toggleMode}/>
-    <Alert alert={alert}/>
-    <div className="container my-3">
-    <TextForm showAlert={showAlert} heading="Enter the text to analyze" mode={mode} toggleMode={toggleMode} />
-    {/* <About/> */}
-    </div>
+    <Router>
+      <Navbar title="TextUtils" aboutText="About Us" mode={mode} toggleMode={toggleMode} />
+      <Alert alert={alert} />
+      <div className="container my-3">
+        <Switch>
+          {/* /users ---> Component 1
+          /Users/home/---> Component2 Use Exact for exact matching */}
+          <Route exact path="/about">
+            <About />
+          </Route>
+          <Route exact path="/">
+            <TextForm showAlert={showAlert} heading="Enter the text to analyze" mode={mode} toggleMode={toggleMode} />
+          </Route>
+        </Switch>
+      </div>
+      </Router>
     </>
   );
 }
