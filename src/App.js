@@ -36,6 +36,7 @@ function App() {
   }
   const toggleMode = (cls) => {
     removeBodyClasses();
+    console.log(cls);
     document.body.classList.add('bg-'+cls);
     if (mode === 'light') {
       setMode('dark');
@@ -43,7 +44,6 @@ function App() {
       showAlert('Dark mode has been enabled', 'success');
       // document.title = 'TextUtils - Dark Mode'
     }
-   
     else {
       setMode('light');
       document.body.style.backgroundColor = 'white';
@@ -64,7 +64,7 @@ function App() {
             <About mode={mode} />
           </Route> 
           <Route exact path="/">
-            <TextForm showAlert={showAlert} heading="Enter the text to analyze" mode={mode} toggleMode={toggleMode} />
+            <TextForm showAlert={showAlert} heading="Enter the text to analyze" mode={mode}/>
            </Route>
         </Switch> 
       </div>
