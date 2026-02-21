@@ -6,7 +6,9 @@ import Custom from './components/Custom';
 const age = !true;
 const age1 = 20;
 
-function App() {
+function App2() {
+ 
+
   // Funtion defination for the button
   function buttonClick(){
     console.log("I was pressed")
@@ -32,6 +34,7 @@ useEffect(() => {
   }
   return (
     <>
+    
     <Header />
    <div id="content">
     <h1>Counter: {counter}</h1>
@@ -53,7 +56,7 @@ useEffect(() => {
   );
 }
 
-export default App;
+export default App2;
 
 // setCounter = function(value){
 //   if(typeof value === 'function'){

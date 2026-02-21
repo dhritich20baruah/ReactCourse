@@ -1,0 +1,442 @@
+Destructuring Props
+function App() {
+  return (
+    <div className="App">
+      <Button increment={2} underline={true} color='black'/>
+      <Button increment={2} underline={true} color="yellow"/>
+      <Button increment={2} underline={true} color="red"/>
+    </div>
+  );
+} This is same as the following lines of code with destructuring
+function App() {
+  const props = {
+    increment: 2,
+    underline: true,
+    color: black
+  }
+  return (
+    <div className="App">
+      <Button {...props} color='black'/>
+      <Button color="yellow" {...props}/>//because of destructuring props will over right the original propperty of the button color
+      <Button {...props} color="red"/>
+    </div>
+  );
+}
+
+  //JSX code gets converted to --> React.createElement('Button,{
+  //   prop1: '100',
+  //   ...objectHere
+  // }) which is equivalent to 
+  // <Button prop1="100"/>
+function reducer({ state }) {
+  switch (state) {
+    case 'PRESSED_ONCE':
+      return {
+        state: 'PRESSED_TWO'
+      }
+    case 'PRESSED_TWO':
+      return {
+        state: 'PRESSED_THREE'
+      }
+    case 'PRESSED_THREE':
+      return {
+        state: 'PRESSED_ONCE'
+      }
+  }
+}
+
+const Button = (props) => {
+  const [counter, setCounter] = useState(0)
+
+  const [state, dispatch] = useReducer(reducer, {
+    state: 'PRESSED_ONCE'
+  })
+  return <div style={{ 
+    color: props.color, 
+    textDecoration: props.underline ? 'underline' : undefined
+   }}>
+     <div onClick={() => dispatch()}>Click Me to increment</div>
+     <div>{state.state}</div>
+   </div>
+
+}
+
+//STATE MACHINE
+import './App.css';
+import { useReducer, useState, useEffect } from 'react';
+
+function reducer({ state }) {
+  switch (state) {
+    case 'PRESSED_ONCE':
+      return {
+        state: 'PRESSED_TWO'
+      }
+    case 'PRESSED_TWO':
+      return {
+        state: 'PRESSED_THREE'
+      }
+    case 'PRESSED_THREE':
+      return {
+        state: 'PRESSED_ONCE'
+      }
+  }
+}
+
+const Button = (props) => {
+  const [counter, setCounter] = useState(0)
+
+  const [state, dispatch] = useReducer(reducer, {
+    state: 'PRESSED_ONCE'
+  })
+  return <div style={{ 
+    color: props.color, 
+    textDecoration: props.underline ? 'underline' : undefined
+   }}>
+     <div onClick={() => dispatch()}>Click Me to increment</div>
+     <div>{state.state}</div>
+   </div>
+
+}
+
+//idle
+//loading
+//loaded
+//error
+
+function App() {
+  const [state, setState] = useState('idle')
+
+  function clicked(){
+    setState('loading')
+    fetch('/data.json')
+      .then((data)=>{
+        try{
+          JSON.parse(data)
+          setState('loaded')
+        }catch(error){
+          setState('req-error')
+        }
+      })
+      .catch((err)=>{
+        setState('networkerror')
+      })
+  }
+
+  if (state === 'loading'){
+    return <div>Loading...</div>
+  }
+
+  if (state === 'network-error'){
+    return <div>Error fetching your requests</div>
+  }
+
+  if (state === 'req-error'){
+    return <div>Bad server response</div>
+  }
+
+  return (
+    <div className="App" onClick={clicked}>
+      Current state: {state}
+    </div>
+  );
+}
+
+export default App;
+
+
+//#######COMPOUND COMPONENTS
+import React, { useState } from 'react';
+import './App.css';
+// import { useReducer, useState, useEffect } from 'react';
+
+const Checkbox=({children})=>{//accepted children as the property which is both checkboxInput and label
+  const [checked, setChecked] = useState(true)
+
+  const allChildren = React.Children.map(children,//Iterated over every React chldren
+     (child) => {
+       const clone = React.cloneElement(child, {//cloned them and passed two new props
+         checked,
+         setChecked
+       })
+       return clone
+     })
+  return allChildren
+}
+//checkboxinput and label can access both of them
+const CheckboxInput = ({checked, setChecked}) =>{
+
+  return (
+    <>
+    <input type='checkbox'
+    checked={checked}
+    onChange={(e)=>{
+      setChecked(e.target.checked)
+    }}
+    />
+    </>)
+}
+
+const Label=({setChecked, children})=>{
+  return <label onClick={()=>setChecked((state) => !state)}>
+    {children}
+    </label>
+}
+
+function App() {
+  return(
+    <Checkbox>
+      <CheckboxInput/>
+      <Label>Check box label</Label>
+    </Checkbox>
+
+  )
+}
+
+export default App;
+
+
+///////USING COMPUND COMPONENTS INDIVIDUALLY
+import React, { useEffect, useState } from 'react';
+import './App.css';
+// import { useReducer, useState, useEffect } from 'react';
+
+const Checkbox=({children})=>{//accepted children as the property which is both checkboxInput and label
+  const [checked, setChecked] = useState(true)
+
+  const allChildren = React.Children.map(children,//Iterated over every React chldren
+     (child) => {
+      if(child.type !== Label && child.type !== CheckboxInput){
+        throw new Error('No custom element supported')
+      }
+      if(typeof child.type === 'string'){
+        // throw new Error(
+        //   `<${child.type}/> DOM element is not allowed inside <Checkbox/> component`
+        // )
+        return null
+      }
+
+       const clone = React.cloneElement(child, {//cloned them and passed two new props
+         checked,
+         setChecked
+       })
+       return clone
+     })
+  return allChildren
+}
+//checkboxinput and label can access both of them
+const CheckboxInput = ({checked, setChecked}) =>{
+
+  const [_checked, _setChecked] = useState(!!checked)
+
+  useEffect(()=>{
+    _setChecked(_checked)
+  }, [checked])
+  return (
+    <>
+    <input type='checkbox'
+    checked={checked}
+    onChange={(e)=>{
+      _setChecked(e.target.checked)
+      if (setChecked){
+        setChecked(e.target.checked)
+      }
+    }}
+    />
+    </>)
+}
+
+const Label=({setChecked, children})=>{
+  if(!setChecked){
+    throw new Error('Label should be called from Checkbox component')
+  }
+  return <label onClick={()=>setChecked((state) => !state)}>
+    {children}
+    </label>
+}
+
+function App() {
+  return(
+    <Checkbox>
+      <CheckboxInput/>
+      <Label>Check box label</Label>
+     
+    </Checkbox>
+
+  )
+}
+
+export default App;
+
+
+///Flexible compund components///
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import './App.css';
+// import { useReducer, useState, useEffect } from 'react';
+
+//useContext provides access to all the children eventhough they are nested
+const CheckboxInterface = createContext(null)
+
+const Checkbox=({children})=>{//accepted children as the property which is both checkboxInput and label
+  const [checked, setChecked] = useState(true)
+
+  
+  return <CheckboxInterface.Provider 
+    value={{
+      checked,
+      setChecked
+    }}>{children}
+    </CheckboxInterface.Provider> 
+}
+
+//checkboxinput and label can access both of them
+const CheckboxInput = () =>{
+
+  const context = useContext(CheckboxInterface)
+
+  if(!context){
+    throw new Error('Should be used inside <Checkbox/>')
+  }
+
+  const { checked, setChecked } = context
+
+  return (
+    <>
+    <input type='checkbox'
+    checked={checked}
+    onChange={(e)=>{
+      setChecked(e.target.checked)
+    }}
+    />
+    </>)
+}
+
+const Label=({ children})=>{
+  const context = useContext(CheckboxInterface)
+
+  if(!context){
+    throw new Error('Label should be called from Checkbox component')
+  }
+
+  const { setChecked } = context
+  return <label onClick={()=>setChecked((state) => !state)}>
+    {children}
+    </label>
+}
+
+function App() {
+  return(
+    <Checkbox>
+      <CheckboxInput/>
+      <div> 
+      <Label>Check box label</Label>
+      </div>
+     
+    </Checkbox>
+
+  )
+}
+
+export default App;
+
+
+///////LAZY LOADING AND ADDING SUSPENSE
+import React, {useState} from 'react';
+import './App.css';
+
+const Component = React.lazy(()=> import('./Component'))
+
+console.log(Component)
+
+function App() {
+  const [showComponent, setShowComponent] = useState(false)
+  return(
+    <div>
+      <h1 onClick={()=> setShowComponent(!showComponent)}>Hello World</h1>
+      <React.Suspense fallback={<p>LOADING...</p>}>
+      {Math.random() > 0.5 && <Component/>}
+        {showComponent && <Component/>}
+      </React.Suspense>
+    </div>
+  )
+}
+//Keep the suspense as close as possible to the component
+export default App;
+
+
+////Eager loading components
+import React, {useState} from 'react';
+import './App.css';
+
+const Component = React.lazy(()=> import('./Component'))
+
+function loadComponent(){
+  import('./Component') //This function onhovering fetches the file and puts it in the cache and when it is requested the browser seamlessly loads it.
+}
+
+function App() {
+  const [showComponent, setShowComponent] = useState(false)
+
+  return(
+    <div>
+      <h1 onMouseOver={loadComponent} onClick={()=> setShowComponent(!showComponent)}>Hello World</h1>
+      <React.Suspense fallback={<p>LOADING...</p>}>
+      {Math.random() > 0.5 && <Component/>}
+        {showComponent && <Component/>}
+      </React.Suspense>
+    </div>
+  )
+}
+
+export default App;
+
+
+/////Memoize functional component
+import React, {useState, useRef, useEffect} from 'react';
+import './App.css';
+
+let CustomLI = ({ children }) =>{
+  const renderedCount = useRef(0)
+  const [flip, setFlip] = useState(false)
+
+  useEffect(()=>{
+    renderedCount.current += 1
+  })
+
+  return (
+    <li
+      style={{ background: flip ? 'green' : 'pink'}}
+      onMouseEnter={()=>setFlip(true)}
+      onMouseLeave={()=>setFlip(false)}
+      >
+        {children} Renders: {renderedCount.current}
+      </li>
+  )
+}
+
+CustomLI = React.memo(CustomLI)
+
+function App() {
+  const [flip, setFlip] = useState(false)
+
+  return(
+    <ul
+      style={{ background: flip ? 'orange' : 'white'}}
+      onMouseEnter={()=>setFlip(true)}
+      onMouseLeave={()=>setFlip(false)}
+    >
+      <CustomLI prop1={Math.random()}>Hello world 1</CustomLI>
+      <CustomLI>Hello world 2</CustomLI>
+      <CustomLI>Hello world 3</CustomLI>
+      <CustomLI>Hello world 4</CustomLI>
+      <CustomLI>Hello world 5</CustomLI>
+      <CustomLI>Hello world 6</CustomLI>
+      <CustomLI>Hello world 7</CustomLI>
+    </ul>
+  )
+}
+
+export default App;
+
+
+
+////Comporator for functional components

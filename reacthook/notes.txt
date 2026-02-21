@@ -1,0 +1,312 @@
+useState Hook
+
+const [state, setstate] = useState(100)
+is same as the following block of code
+ES6 destructuring
+const arr = useState(100)
+const state = arr[0]
+const setState = arr[1]
+
+Lazy State: Used when we have a singular expression that is computationally expensive
+
+<React.StrictMode> renders twice
+const [state, setState] = useState(console.log("Hello"))This will render multiple console logs
+const [state, setState] = useState(()=>console.log("Hello"))Lazy renders
+
+update state: When the previous state is required to calculate the next state use the functional method of passing argument to set State
+
+ const [counter, setCounter] = useState(0)
+  
+  return (
+    <div className="App">
+      <h1 onClick={()=>{setCounter(value =>{ return value + 1 })}}>Counter: {counter}</h1>
+    </div>
+  );
+
+  function App() {
+
+  const [counter, setCounter] = useState(0)
+  
+  return (
+    <div className="App">
+      <h1 onClick={()=>{
+        setTimeout(() =>{ 
+          setCounter(counter + 1)
+        }, 1000)
+        }}>
+          Counter: {counter}
+      </h1>
+    </div>
+  );
+}
+
+This doesnot work:--
+<h1 onClick={()=>{
+        setCounter((value)=>value+1)
+        setTimeout(() =>{ 
+          setCounter(counter + 1)
+        }, 1000)
+        }}>
+          Counter: {counter}
+      </h1>
+because the value doesnot get updated
+
+To fix that this should be done 
+<h1 onClick={()=>{
+        setCounter((value)=>value+1)
+        setTimeout(() =>{ 
+          setCounter((value)=>value+1)
+        }, 1000)
+        }}>
+          Counter: {counter}
+      </h1>
+
+CLASS BASED COMPONENTS AND USED SETSTATE AS functionimport React, {useState} from 'react';
+import './App.css';
+
+class Button extends React.Component{
+  constructor(){
+    this.state = {
+      counter: 0
+    }
+  }
+  render(){
+    return <div onClick={()=>{
+      this.setState({
+        counter: this.state.counter + 1
+      })
+    }}>{this.state.counter}</div>
+  }
+}
+
+
+function App() {
+
+  const [state, _setState] = useState({
+    counter: 0,
+    counter2: 10
+  })
+  
+  function setState(newState){
+    _setState(oldState=>{
+      return {
+        ...oldState,
+        ...newState
+      }
+    })
+  }
+
+  return  <h1 onClick={()=>{
+    setState({
+      counter: state.counter + 1
+    })
+  }}>{state.counter}{state.counter2}</h1>
+
+  // return (
+  //   <div className="App">
+  //    <Button/>
+    
+  //   </div>
+  // );
+}
+
+export default App;
+
+useEffect is a functioncalled by react everytime the function updates or rerenders.
+
+useEffect(()=>{
+    console.log('Counter1 changed')
+}, [counter]) Here useEffect will not be called everytime and will be called only if counter or whatever element that array contains is changed.
+Do not setState inside useEffect without if else conditions or any other checks.
+Do not use Objects in the dependency array condition if the object is placed inside the function component but can be used if the object is declared using setState or if it is declared outside functional component.
+
+useEffect returns a cleanup function but if you put a async function in it, it will return a promise instead.
+function App() {
+ const [msg, setMsg] = useState('')
+
+  useEffect(()=>{
+    async function fetchData(){
+      const data = await fetch('https://localhost:3000/data.json').then(text=>text.json())
+      setMsg(data.hello)
+    }
+    fetchData()
+  },[])
+
+  return (
+    <div className="App">
+        <h1>Hello World!</h1>
+    </div>
+  );
+}
+
+USEREF HOOK:-
+useRef although a object will return the same value at every render.
+Memory cleanup is obtained unlike when objects are declared globally.
+
+DOM manioulation using useReffunction App() {
+  const elementRef = useRef()
+  const [counter, setCounter] = useState(0)
+  const renders = useRef(0)
+
+  useEffect(()=>{
+    renders.current += 1
+  })
+
+  useEffect(() => {
+    console.log('Ref element:',elementRef.current.innerText)
+    console.log(elementRef.current.tagName)
+  })
+
+  useEffect(()=>{
+    
+  }, [counter])
+  
+  return (
+    <div className="App">
+        <h1 onClick={()=>{
+            setCounter(value=>value+1)
+        }}>Hello World! {counter}</h1>
+
+        <h2>Current render: {renders.current + 1}</h2>
+    </div>
+  );
+}
+
+useState as useRef
+import React, {useState, useEffect} from 'react';
+import './App.css';
+
+function App() {
+  const [counter, setCounter] = useState(0)
+
+  const _render = useState({ prop1: 100, prop2: 200})[0]//here useState is used as useRef
+
+  useEffect(()=>{
+    _renders.current += 1
+  })
+
+  
+  return (
+    <div className="App">
+        <h1 onClick={()=>{
+            setCounter(value=>value+1)
+        }}>Hello World! {counter}</h1>
+
+        <h2>Current render: {_renders.current + 1}</h2>
+    </div>
+  );
+}
+
+export default App;
+
+//useReducer
+import React, {useState, useReducer} from 'react';
+import './App.css';
+
+function randomFunction(state, step){
+  return state + step
+}
+
+function App() {
+  const [counter, setCounter] = useReducer(randomFunction, 10)
+  const step = 15
+  return (
+    <div className="App">
+        <h1 onClick={()=>setCounter(step)}>Counter: {counter}</h1>
+    </div>
+  );
+}
+
+export default App;
+
+####useReducer with redux like dispatcher
+import React, {useState, useReducer} from 'react';
+import './App.css';
+
+//when dispatch will be called
+//state = {counter: 0, step: 1}
+//step = {type: 'INCREMENT_COUNTER}
+function randomFunction(state, action){
+  switch(action.type){
+    case 'INCREMENT_STEP':{
+      return {
+        ...state,
+        step: state.step + action.payload
+      }
+    }
+    case 'INCREMENT_COUNTER':{
+      return {
+        ...state,
+        step: state.counter +  state.step
+      }
+    }
+    default:{
+      return state
+    }
+  }
+}
+
+function App() {
+  // const [step, setStep] = useState(20)
+  const [state, dispatch] = useReducer(randomFunction, {
+    counter: 0,
+    step: 1
+  })
+
+  function increaseIncrement(){
+    dispatch({type: 'INCREMENT_STEP', payload: 1})
+  }
+  function decrementIncrement(){
+    dispatch({type: 'INCREMENT_STEP', payload: -1})
+  }
+  function increaseCounter(){
+    dispatch({type: 'INCREMENT_COUNTER'})
+  }
+  return (
+    <div className="App">
+        <h1 onClick={()=>increaseCounter}>Counter: {state.counter}</h1>
+        <h2>Current step: {state.step}</h2>
+        <button onClick={increaseIncrement}>Increase the step</button>
+        <button onClick={decrementIncrement}>Decrease the step</button>
+
+    </div>
+  );
+}
+
+export default App;
+##useMemo
+usememo is used when it is computationally expensive. Unlike useState where if a object is passed everytime it renders it points to a different location in the Memory in useMemo it points to same location in the Memory until there is a change in the dependency array.
+
+import React, {useMemo, useState, useCallback} from 'react';
+import './App.css';
+
+
+function App() {
+  
+  const [state, setState] = useState(0)
+
+  const value = useMemo(()=>{
+    console.log('I am inside useMemo')// Memoization and will be called only once
+    return 100
+  }, [])
+
+  const obj2 = useCallback(()=>{
+    console.log('Hello there')
+    return <h1>Memoized component</h1>
+  }, [state])
+  
+  const value2 = 100
+
+  return(
+    <div className='App'>
+      <h1>Hello World - {value} | {value2}</h1>
+      <h2 onClick={()=>setState(Math.random())}>State Variable - {state}</h2>
+    </div>
+  )
+ 
+}
+
+export default App;
+
+Context API
+
